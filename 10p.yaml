@@ -1,0 +1,60 @@
+name: Weather Data Pipeline
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Runs hourly
+  workflow_dispatch:
+
+env:
+  OUTPUT_DIR: weather_data
+
+jobs:
+  fetch-and-process:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Create output directory
+        run: mkdir -p ${{ env.OUTPUT_DIR }}
+
+      - name: Fetch weather data
+        env:
+          WEATHERSTACK_API_KEY: ${{ secrets.WEATHERSTACK_API_KEY }}
+        run: python fetch_weather.py
+
+      - name: Commit processed data
+        if: success()
+        run: |
+          git config --global user.name "Weather Data Bot"
+          git config --global user.email "weather-bot@users.noreply.github.com"
+          git add ${{ env.OUTPUT_DIR }}/
+          git commit -m "Auto-update: Latest weather data"
+          git push
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: weather-artifacts
+          path: ${{ env.OUTPUT_DIR }}/
+          retention-days: 3
+
+      - name: Archive data
+        uses: thedoctor0/zip-release@v2
+        with:
+          filename: weather_data.zip
+          directory: ${{ env.OUTPUT_DIR }}
+          
+      - name: Upload archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: weather-archive
+          path: weather_data.zip
+          retention-days: 7
