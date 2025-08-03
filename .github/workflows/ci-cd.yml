@@ -29,7 +29,7 @@ jobs:
       run: python scripts/preprocess.py
 
     - name: ☁️ Upload cleaned data
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: cleaned-data
         path: data/weather_data_clean.csv
@@ -38,13 +38,13 @@ jobs:
       run: python scripts/train_model.py
 
     - name: 🧠 Upload trained models
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: trained-models
         path: models/
 
     - name: 📊 Upload plots
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: preprocessing-plots
         path: plots/
