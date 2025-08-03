@@ -25,6 +25,13 @@ jobs:
           pip install -r requirements.txt || true
           pip install pandas numpy scikit-learn matplotlib seaborn streamlit
 
+      - name: 📁 List all files for debugging
+        run: |
+          echo "Current working directory:"
+          pwd
+          echo "Directory structure:"
+          ls -R
+
       - name: ⚙️ Run preprocessing
         run: python scripts/preprocess.py
 
@@ -43,6 +50,7 @@ jobs:
         with:
           name: cleaned-data
           path: data/weather_data_clean.csv
+
       - name: 📤 Upload plots
         uses: actions/upload-artifact@v4
         with:
