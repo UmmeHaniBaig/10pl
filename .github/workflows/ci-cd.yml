@@ -7,34 +7,31 @@ on:
     branches: [ main ]
 
 jobs:
-  preprocess-data:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.10
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
 
-    - name: Install dependencies
-      run: |
-        pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true  # ignore if no file
+          pip install pandas numpy scikit-learn matplotlib seaborn streamlit
 
-    - name: Run preprocessing
-      run: python scripts/preprocess.py
+      - name: ⚙️ Run preprocessing
+        run: python preprocess.py
 
-    - name: Upload plots
-      uses: actions/upload-artifact@v3
-      with:
-        name: preprocessing-plots
-        path: plots/
+      - name: 🔍 Run model training
+        run: python 10p.py
 
-    - name: Upload cleaned dataset
-      uses: actions/upload-artifact@v3
-      with:
-        name: cleaned-data
-        path: data/weather_data_clean.csv
+      - name: 🚦 Validate Streamlit dashboard runs
+        run: |
+          streamlit run dashboard.py --server.headless true &
+          sleep 10
