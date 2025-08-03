@@ -33,7 +33,7 @@ jobs:
           ls -R
 
       - name: ⚙️ Run preprocessing
-        run: python scripts/preprocess.py
+        run: python Scripts/preprocess.py
 
       - name: 🔍 Train ML models (optional)
         run: |
