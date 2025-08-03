@@ -1,27 +1,23 @@
 import streamlit as st
 import pandas as pd
-import joblib
-
-# Load trained models
-linear_model = joblib.load("models/linear_model.pkl")
-rf_model = joblib.load("models/rf_model.pkl")
-
-import streamlit as st
-import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
+import joblib
 
 # ========== Page Setup ==========
 st.set_page_config(page_title="Weather Dashboard", layout="wide")
 st.title("🌤️ Weather & Pollution Dashboard")
 
-# ========== Load Data ==========
+# ========== Load Cleaned Data ==========
 @st.cache_data
 def load_data():
     return pd.read_csv("data/weather_data_clean.csv", parse_dates=["timestamp"])
 
 df = load_data()
+
+# ========== Load Trained Models ==========
+linear_model = joblib.load("models/linear_model.pkl")
+rf_model = joblib.load("models/rf_model.pkl")
 
 # ========== Filters ==========
 with st.sidebar:
@@ -81,3 +77,25 @@ for col in ["temperature", "humidity", "wind_speed", "pressure", "uv_index"]:
     ax.set_title(f"Distribution of {col}")
     st.pyplot(fig)
 
+# ========== Model Predictions ==========
+st.subheader("🔮 Model Predictions")
+
+input_features = ["temperature", "humidity", "wind_speed", "pressure", "uv_index"]
+
+if all(feature in filtered_df.columns for feature in input_features):
+    X = filtered_df[input_features].dropna()
+    linear_preds = linear_model.predict(X)
+    rf_preds = rf_model.predict(X)
+
+    filtered_df = filtered_df.loc[X.index]  # Align with prediction rows
+    filtered_df["Linear Regression Prediction"] = linear_preds
+    filtered_df["Random Forest Prediction"] = rf_preds
+
+    st.dataframe(filtered_df[["timestamp", *input_features,
+                              "Linear Regression Prediction", "Random Forest Prediction"]].head())
+
+    st.line_chart(filtered_df.set_index("timestamp")[[
+        "Linear Regression Prediction", "Random Forest Prediction"
+    ]])
+else:
+    st.warning("Required input features are missing from the dataset.")
