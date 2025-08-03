@@ -43,7 +43,6 @@ jobs:
         with:
           name: cleaned-data
           path: data/weather_data_clean.csv
-
       - name: 📤 Upload plots
         uses: actions/upload-artifact@v4
         with:
