@@ -1,5 +1,13 @@
 import streamlit as st
 import pandas as pd
+import joblib
+
+# Load trained models
+linear_model = joblib.load("models/linear_model.pkl")
+rf_model = joblib.load("models/rf_model.pkl")
+
+import streamlit as st
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
