@@ -1,0 +1,51 @@
+name: CI/CD for Air Quality Project
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+          pip install pandas numpy scikit-learn matplotlib seaborn streamlit
+
+      - name: ⚙️ Run preprocessing
+        run: python scripts/preprocess.py
+
+      - name: 🔍 Train ML models (optional)
+        run: |
+          if [ -f model1.py ]; then python model1.py; fi
+          if [ -f model2.py ]; then python model2.py; fi
+
+      - name: 🚦 Validate Streamlit dashboard runs
+        run: |
+          streamlit run dashboard.py --server.headless true &
+          sleep 10
+
+      - name: 📤 Upload cleaned data
+        uses: actions/upload-artifact@v4
+        with:
+          name: cleaned-data
+          path: data/weather_data_clean.csv
+
+      - name: 📤 Upload plots
+        uses: actions/upload-artifact@v4
+        with:
+          name: preprocessing-plots
+          path: plots/
