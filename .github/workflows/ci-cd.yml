@@ -1,0 +1,39 @@
+name: Weather Data CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  preprocess-data:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.10
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run preprocessing
+      run: python scripts/preprocess.py
+
+    - name: Upload plots
+      uses: actions/upload-artifact@v3
+      with:
+        name: preprocessing-plots
+        path: plots/
+
+    - name: Upload cleaned dataset
+      uses: actions/upload-artifact@v3
+      with:
+        name: cleaned-data
+        path: data/weather_data_clean.csv
