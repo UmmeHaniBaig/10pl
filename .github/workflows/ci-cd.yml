@@ -1,9 +1,10 @@
-name: Weather Data CI/CD
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
 
 jobs:
   preprocess-data:
