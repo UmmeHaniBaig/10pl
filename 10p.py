@@ -4,6 +4,7 @@ import csv
 from datetime import datetime
 import os
 import sys
+import time
 
 # Configuration
 CONFIG_FILE = "config.json"
@@ -15,7 +16,7 @@ def load_config():
     try:
         with open(CONFIG_FILE, 'r') as f:
             config = json.load(f)
-            api_key = config.get('weatherstack_api_key')
+            api_key = config.get('weatherapi_key')  # Updated key name
             if not api_key:
                 raise ValueError("API key not found in config.json")
             return api_key
@@ -27,29 +28,25 @@ def load_config():
         sys.exit(1)
 
 def fetch_weather_data(api_key):
-    """Fetch weather data from Weatherstack API"""
+    """Fetch weather data from WeatherAPI"""
     try:
-        url = f"http://api.weatherstack.com/current?access_key={api_key}&query={CITY}"
+        url = f"http://api.weatherapi.com/v1/current.json?key={api_key}&q={CITY}"
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         data = response.json()
-        
-        if "error" in data:
-            error_msg = data["error"].get("info", "Unknown API error")
-            raise Exception(f"Weatherstack Error: {error_msg}")
         
         return {
             "timestamp": datetime.now().isoformat(),
             "location": data["location"]["name"],
             "country": data["location"]["country"],
-            "temperature": data["current"]["temperature"],
-            "feels_like": data["current"]["feelslike"],
-            "weather": data["current"]["weather_descriptions"][0],
+            "temperature": data["current"]["temp_c"],  # Temperature in Celsius
+            "feels_like": data["current"]["feelslike_c"],  # Feels like in Celsius
+            "weather": data["current"]["condition"]["text"],
             "humidity": data["current"]["humidity"],
-            "wind_speed": data["current"]["wind_speed"],
+            "wind_speed": data["current"]["wind_kph"],  # Wind speed in km/h
             "wind_dir": data["current"]["wind_dir"],
-            "pressure": data["current"]["pressure"],
-            "uv_index": data["current"]["uv_index"]
+            "pressure": data["current"]["pressure_mb"],  # Pressure in mb
+            "uv_index": data["current"]["uv"]  # UV index
         }
     except requests.exceptions.RequestException as e:
         print(f"❌ Network error: {str(e)}")
@@ -79,10 +76,15 @@ def save_data(data):
 
 if __name__ == "__main__":
     api_key = load_config()
-    weather_data = fetch_weather_data(api_key)
     
-    if weather_data:
-        json_path, csv_path = save_data(weather_data)
-        print(f"✅ Data saved:\n- JSON: {json_path}\n- CSV: {csv_path}")
-    else:
-        sys.exit(1)
+    while True:
+        weather_data = fetch_weather_data(api_key)
+        
+        if weather_data:
+            json_path, csv_path = save_data(weather_data)
+            print(f"✅ Data saved:\n- JSON: {json_path}\n- CSV: {csv_path}")
+        else:
+            sys.exit(1)
+        
+        # Wait for 10 seconds before the next update
+        time.sleep(10)
